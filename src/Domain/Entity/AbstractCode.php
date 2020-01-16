@@ -10,13 +10,14 @@ declare(strict_types = 1);
 namespace Ergonode\Core\Domain\Entity;
 
 use JMS\Serializer\Annotation as JMS;
-use Ramsey\Uuid\Uuid;
-use Ramsey\Uuid\UuidInterface;
 
 /**
  */
-abstract class AbstractId
+abstract class AbstractCode
 {
+    public const MIN_LENGTH = 1;
+    public const MAX_LENGTH = 255;
+
     /**
      * @var string
      *
@@ -29,9 +30,9 @@ abstract class AbstractId
      */
     public function __construct(string $value)
     {
-        if (!Uuid::isValid($value)) {
+        if (!self::isValid($value)) {
             throw new \InvalidArgumentException(sprintf(
-                '"%s" should be valid uuid value, given value "%s"',
+                '"%s" should be valid code, given value "%s"',
                 static::class,
                 $value
             ));
@@ -40,25 +41,6 @@ abstract class AbstractId
         $this->value = $value;
     }
 
-    /**
-     * @param UuidInterface $uuid
-     *
-     * @return static
-     */
-    public static function createFromUuid(UuidInterface $uuid): object
-    {
-        return new static($uuid->toString());
-    }
-
-    /**
-     * @return static
-     *
-     * @throws \Exception
-     */
-    public static function generate(): object
-    {
-        return new static(Uuid::uuid4()->toString());
-    }
 
     /**
      * @param string $value
@@ -67,7 +49,8 @@ abstract class AbstractId
      */
     public static function isValid(string $value): bool
     {
-        return Uuid::isValid($value);
+        return mb_strlen($value) <= self::MAX_LENGTH
+            && mb_strlen($value) >= self::MIN_LENGTH;
     }
 
     /**
@@ -87,12 +70,12 @@ abstract class AbstractId
     }
 
     /**
-     * @param AbstractId $id
+     * @param AbstractCode $code
      *
      * @return bool
      */
-    public function isEqual(AbstractId $id): bool
+    public function isEqual(AbstractCode $code): bool
     {
-        return $id->getValue() === $this->getValue();
+        return $code->getValue() === $this->getValue();
     }
 }
