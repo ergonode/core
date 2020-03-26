@@ -7,36 +7,36 @@
 
 declare(strict_types = 1);
 
-namespace Ergonode\Core\Application\Controller\Api\Language;
+namespace Ergonode\Core\Application\Controller\Api\Unit;
 
 use Ergonode\Api\Application\Exception\FormValidationHttpException;
-use Ergonode\Api\Application\Response\EmptyResponse;
-use Ergonode\Core\Application\Form\LanguageCollectionForm;
-use Ergonode\Core\Application\Model\LanguageCollectionFormModel;
-use Ergonode\Core\Domain\Command\UpdateLanguageCommand;
+use Ergonode\Api\Application\Response\CreatedResponse;
+use Ergonode\Core\Application\Form\UnitForm;
+use Ergonode\Core\Application\Model\UnitFormModel;
+use Ergonode\Core\Domain\Command\CreateUnitCommand;
+use Ergonode\EventSourcing\Infrastructure\Bus\CommandBusInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Swagger\Annotations as SWG;
 use Symfony\Component\Form\FormFactoryInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
-use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\PropertyAccess\Exception\InvalidPropertyPathException;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route(
- *     name="ergonode_core_language_change",
- *     path="/languages",
- *     methods={"PUT"}
+ *     name="ergonode_unit_create",
+ *     path="/units",
+ *     methods={"POST"}
  * )
  */
-class LanguageChangeAction
+class UnitCreateAction
 {
     /**
-     * @var MessageBusInterface
+     * @var CommandBusInterface
      */
-    private MessageBusInterface $messageBus;
+    private CommandBusInterface $commandBus;
 
     /**
      * @var FormFactoryInterface
@@ -44,43 +44,43 @@ class LanguageChangeAction
     private FormFactoryInterface $formFactory;
 
     /**
-     * @param MessageBusInterface  $messageBus
+     * @param CommandBusInterface  $commandBus
      * @param FormFactoryInterface $formFactory
      */
     public function __construct(
-        MessageBusInterface $messageBus,
+        CommandBusInterface $commandBus,
         FormFactoryInterface $formFactory
     ) {
-        $this->messageBus = $messageBus;
+        $this->commandBus = $commandBus;
         $this->formFactory = $formFactory;
     }
 
     /**
-     * @IsGranted("SETTINGS_UPDATE")
+     * @IsGranted("SETTINGS_CREATE")
      *
-     * @SWG\Tag(name="Language")
+     * @SWG\Tag(name="Unit")
      * @SWG\Parameter(
      *     name="language",
      *     in="path",
      *     type="string",
-     *     required=true,
-     *     default="EN",
-     *     description="Language Code",
+     *     description="Language code",
+     *     default="EN"
      * )
      * @SWG\Parameter(
      *     name="body",
      *     in="body",
-     *     description="Category body",
+     *     description="Add unit",
      *     required=true,
-     *     @SWG\Schema(ref="#/definitions/languages_req")
+     *     @SWG\Schema(ref="#/definitions/unit")
      * )
      * @SWG\Response(
-     *     response=200,
-     *     description="Update language",
+     *     response=201,
+     *     description="Returns unit ID",
      * )
      * @SWG\Response(
      *     response=400,
-     *     description="Form validation error",
+     *     description="Validation error",
+     *     @SWG\Schema(ref="#/definitions/validation_error_response")
      * )
      *
      * @param Request $request
@@ -92,22 +92,20 @@ class LanguageChangeAction
     public function __invoke(Request $request): Response
     {
         try {
-            $model = new LanguageCollectionFormModel();
-            $form = $this->formFactory->create(
-                LanguageCollectionForm::class,
-                $model,
-                ['method' => Request::METHOD_PUT]
-            );
+            $model = new UnitFormModel();
+            $form = $this->formFactory->create(UnitForm::class, $model);
             $form->handleRequest($request);
+
             if ($form->isSubmitted() && $form->isValid()) {
-                /** @var LanguageCollectionFormModel $data */
+                /** @var UnitFormModel $data */
                 $data = $form->getData();
-                $languages = $data->collection->getValues();
+                $command = new CreateUnitCommand(
+                    $data->name,
+                    $data->symbol
+                );
+                $this->commandBus->dispatch($command);
 
-                $command = new UpdateLanguageCommand($languages);
-                $this->messageBus->dispatch($command);
-
-                return new EmptyResponse();
+                return new CreatedResponse($command->getId());
             }
         } catch (InvalidPropertyPathException $exception) {
             throw new BadRequestHttpException('Invalid JSON format');
