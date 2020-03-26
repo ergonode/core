@@ -7,12 +7,12 @@
 
 declare(strict_types = 1);
 
-namespace Ergonode\Core\Application\Controller\Api\Language;
+namespace Ergonode\Core\Application\Controller\Api\Unit;
 
 use Ergonode\Api\Application\Response\SuccessResponse;
-use Ergonode\Core\Domain\Query\LanguageQueryInterface;
+use Ergonode\Core\Domain\Query\UnitQueryInterface;
 use Ergonode\Core\Domain\ValueObject\Language;
-use Ergonode\Core\Infrastructure\Grid\LanguageGrid;
+use Ergonode\Core\Infrastructure\Grid\UnitGrid;
 use Ergonode\Grid\Renderer\GridRenderer;
 use Ergonode\Grid\RequestGridConfiguration;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
@@ -22,19 +22,19 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 /**
- * @Route("/languages", methods={"GET"})
+ * @Route("/units", methods={"GET"})
  */
-class LanguageGridReadAction
+class UnitGridReadAction
 {
     /**
-     * @var LanguageQueryInterface
+     * @var UnitGrid
      */
-    private LanguageQueryInterface $query;
+    private UnitGrid $unitGrid;
 
     /**
-     * @var LanguageGrid
+     * @var UnitQueryInterface
      */
-    private LanguageGrid $languageGrid;
+    private UnitQueryInterface $unitQuery;
 
     /**
      * @var GridRenderer
@@ -42,24 +42,27 @@ class LanguageGridReadAction
     private GridRenderer $gridRenderer;
 
     /**
-     * @param GridRenderer           $gridRenderer
-     * @param LanguageQueryInterface $query
-     * @param LanguageGrid           $languageGrid
+     * UnitGridReadAction constructor.
+     *
+     * @param UnitGrid           $unitGrid
+     * @param UnitQueryInterface $unitQuery
+     * @param GridRenderer       $gridRenderer
      */
     public function __construct(
-        GridRenderer $gridRenderer,
-        LanguageQueryInterface $query,
-        LanguageGrid $languageGrid
+        UnitGrid $unitGrid,
+        UnitQueryInterface $unitQuery,
+        GridRenderer $gridRenderer
     ) {
-        $this->query = $query;
-        $this->languageGrid = $languageGrid;
+        $this->unitGrid = $unitGrid;
+        $this->unitQuery = $unitQuery;
         $this->gridRenderer = $gridRenderer;
     }
 
     /**
-     * @IsGranted("SETTINGS_UPDATE")
      *
-     * @SWG\Tag(name="Language")
+     * @IsGranted("SETTINGS_READ")
+     *
+     * @SWG\Tag(name="Unit")
      * @SWG\Parameter(
      *     name="limit",
      *     in="query",
@@ -81,8 +84,14 @@ class LanguageGridReadAction
      *     in="query",
      *     required=false,
      *     type="string",
-     *     enum={"code","name","active"},
      *     description="Order field",
+     * )
+     * @SWG\Parameter(
+     *     name="filter",
+     *     in="query",
+     *     required=false,
+     *     type="string",
+     *     description="Filter"
      * )
      * @SWG\Parameter(
      *     name="order",
@@ -98,7 +107,7 @@ class LanguageGridReadAction
      *     required=false,
      *     type="string",
      *     enum={"grid","list"},
-     *     description="Specify what response should containts"
+     *     description="Specify respons format"
      * )
      * @SWG\Parameter(
      *     name="language",
@@ -110,7 +119,7 @@ class LanguageGridReadAction
      * )
      * @SWG\Response(
      *     response=200,
-     *     description="Returns language",
+     *     description="Returns grid",
      * )
      *
      * @ParamConverter(class="Ergonode\Grid\RequestGridConfiguration")
@@ -122,10 +131,12 @@ class LanguageGridReadAction
      */
     public function __invoke(Language $language, RequestGridConfiguration $configuration): Response
     {
+        $dataSet = $this->unitQuery->getDataSet();
+
         $data = $this->gridRenderer->render(
-            $this->languageGrid,
+            $this->unitGrid,
             $configuration,
-            $this->query->getDataSet(),
+            $dataSet,
             $language
         );
 
