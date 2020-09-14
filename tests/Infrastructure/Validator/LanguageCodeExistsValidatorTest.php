@@ -2,28 +2,40 @@
 
 /**
  * Copyright © Bold Brand Commerce Sp. z o.o. All rights reserved.
- * See license.txt for license details.
+ * See LICENSE.txt for license details.
  */
 
 declare(strict_types = 1);
 
 namespace Ergonode\Core\Tests\Infrastructure\Validator;
 
-use Ergonode\Core\Infrastructure\Validator\Constraint\LanguageCodeConstraint;
-use Ergonode\Core\Infrastructure\Validator\LanguageCodeValidator;
+use Ergonode\Core\Domain\Query\LanguageQueryInterface;
+use Ergonode\Core\Infrastructure\Validator\Constraint\LanguageCodeExists;
+use Ergonode\Core\Infrastructure\Validator\LanguageCodeExistsValidator;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
 /**
  */
-class LanguageCodeValidatorTest extends ConstraintValidatorTestCase
+class LanguageCodeExistsValidatorTest extends ConstraintValidatorTestCase
 {
+    private LanguageQueryInterface $query;
+
+    /**
+     *
+     */
+    public function setUp(): void
+    {
+        $this->query = $this->createMock(LanguageQueryInterface::class);
+        parent::setUp();
+    }
+
     /**
      */
     public function testWrongValueProvided(): void
     {
         $this->expectException(\Symfony\Component\Validator\Exception\ValidatorException::class);
-        $this->validator->validate(new \stdClass(), new LanguageCodeConstraint());
+        $this->validator->validate(new \stdClass(), new LanguageCodeExists());
     }
 
     /**
@@ -40,7 +52,7 @@ class LanguageCodeValidatorTest extends ConstraintValidatorTestCase
      */
     public function testCorrectEmptyValidation(): void
     {
-        $this->validator->validate('', new LanguageCodeConstraint());
+        $this->validator->validate('', new LanguageCodeExists());
         $this->assertNoViolation();
     }
 
@@ -48,7 +60,8 @@ class LanguageCodeValidatorTest extends ConstraintValidatorTestCase
      */
     public function testCorrectValueValidation(): void
     {
-        $this->validator->validate('en_GB', new LanguageCodeConstraint());
+        $this->query->method('getDictionary')->willReturn(['en']);
+        $this->validator->validate('en', new LanguageCodeExists());
 
         $this->assertNoViolation();
     }
@@ -57,19 +70,20 @@ class LanguageCodeValidatorTest extends ConstraintValidatorTestCase
      */
     public function testInCorrectValueValidation(): void
     {
-        $constraint = new LanguageCodeConstraint();
+        $constraint = new LanguageCodeExists();
         $value = 'JL';
+        $this->query->method('getDictionary')->willReturn(['en']);
         $this->validator->validate($value, $constraint);
 
-        $assertion = $this->buildViolation($constraint->message)->setParameter('{{ language }}', $value);
+        $assertion = $this->buildViolation($constraint->message)->setParameter('{{ value }}', $value);
         $assertion->assertRaised();
     }
 
     /**
-     * @return LanguageCodeValidator
+     * @return LanguageCodeExistsValidator
      */
-    protected function createValidator(): LanguageCodeValidator
+    protected function createValidator(): LanguageCodeExistsValidator
     {
-        return new LanguageCodeValidator();
+        return new LanguageCodeExistsValidator($this->query);
     }
 }
