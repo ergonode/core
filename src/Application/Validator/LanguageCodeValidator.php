@@ -2,36 +2,27 @@
 
 /**
  * Copyright © Bold Brand Commerce Sp. z o.o. All rights reserved.
- * See LICENSE.txt for license details.
+ * See license.txt for license details.
  */
 
 declare(strict_types=1);
 
-namespace Ergonode\Core\Infrastructure\Validator;
+namespace Ergonode\Core\Application\Validator;
 
-use Ergonode\Core\Domain\Query\LanguageQueryInterface;
-use Ergonode\Core\Infrastructure\Validator\Constraint\LanguageCodeActive;
+use Ergonode\Core\Domain\ValueObject\Language;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
-class LanguageCodeActiveValidator extends ConstraintValidator
+class LanguageCodeValidator extends ConstraintValidator
 {
-    private LanguageQueryInterface $query;
-
-    public function __construct(LanguageQueryInterface $query)
-    {
-        $this->query = $query;
-    }
-
-
     /**
      * @param mixed $value
      */
     public function validate($value, Constraint $constraint): void
     {
-        if (!$constraint instanceof LanguageCodeActive) {
-            throw new UnexpectedTypeException($constraint, LanguageCodeActive::class);
+        if (!$constraint instanceof LanguageCode) {
+            throw new UnexpectedTypeException($constraint, LanguageCode::class);
         }
 
         if (empty($value)) {
@@ -44,9 +35,9 @@ class LanguageCodeActiveValidator extends ConstraintValidator
 
         $value = (string) $value;
 
-        if (!in_array($value, $this->query->getDictionaryActive(), true)) {
+        if (!Language::isValid($value)) {
             $this->context->buildViolation($constraint->message)
-                ->setParameter('{{ value }}', $value)
+                ->setParameter('{{ language }}', $value)
                 ->addViolation();
         }
     }

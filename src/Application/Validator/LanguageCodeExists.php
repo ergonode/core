@@ -7,9 +7,8 @@
 
 declare(strict_types=1);
 
-namespace Ergonode\Core\Infrastructure\Validator\Constraint;
+namespace Ergonode\Core\Application\Validator;
 
-use Ergonode\Core\Infrastructure\Validator\LanguageCodeExistsValidator;
 use Symfony\Component\Validator\Constraint;
 
 /**
@@ -18,9 +17,4 @@ use Symfony\Component\Validator\Constraint;
 class LanguageCodeExists extends Constraint
 {
     public string $message = 'Language code {{ value }} does not exists.';
-
-    public function validatedBy(): string
-    {
-        return LanguageCodeExistsValidator::class;
-    }
 }
