@@ -7,9 +7,8 @@
 
 declare(strict_types=1);
 
-namespace Ergonode\Core\Infrastructure\Validator\Constraint;
+namespace Ergonode\Core\Application\Validator;
 
-use Ergonode\Core\Infrastructure\Validator\UnitFormValidator;
 use Symfony\Component\Validator\Constraint;
 
 /**
@@ -25,17 +24,11 @@ class UnitForm extends Constraint
 
     public string $emptySymbolMessage = 'The unit symbol should not be empty.';
 
-
     /**
      * @return array|string
      */
     public function getTargets()
     {
         return self::CLASS_CONSTRAINT;
-    }
-
-    public function validatedBy(): string
-    {
-        return UnitFormValidator::class;
     }
 }

@@ -7,12 +7,12 @@
 
 declare(strict_types=1);
 
-namespace Ergonode\Core\Tests\Infrastructure\Validator;
+namespace Ergonode\Core\Tests\Application\Validator;
 
 use Ergonode\Core\Application\Model\UnitFormModel;
 use Ergonode\Core\Domain\Query\UnitQueryInterface;
-use Ergonode\Core\Infrastructure\Validator\Constraint\UnitForm;
-use Ergonode\Core\Infrastructure\Validator\UnitFormValidator;
+use Ergonode\Core\Application\Validator\UnitForm;
+use Ergonode\Core\Application\Validator\UnitFormValidator;
 use Ergonode\SharedKernel\Domain\Aggregate\UnitId;
 use PHPUnit\Framework\MockObject\MockObject;
 use Ramsey\Uuid\Uuid;

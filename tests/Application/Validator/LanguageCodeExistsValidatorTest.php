@@ -7,15 +7,15 @@
 
 declare(strict_types=1);
 
-namespace Ergonode\Core\Tests\Infrastructure\Validator;
+namespace Ergonode\Core\Tests\Application\Validator;
 
 use Ergonode\Core\Domain\Query\LanguageQueryInterface;
-use Ergonode\Core\Infrastructure\Validator\Constraint\LanguageCodeActive;
-use Ergonode\Core\Infrastructure\Validator\LanguageCodeActiveValidator;
+use Ergonode\Core\Application\Validator\LanguageCodeExists;
+use Ergonode\Core\Application\Validator\LanguageCodeExistsValidator;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
-class LanguageCodeActiveValidatorTest extends ConstraintValidatorTestCase
+class LanguageCodeExistsValidatorTest extends ConstraintValidatorTestCase
 {
     private LanguageQueryInterface $query;
 
@@ -28,7 +28,7 @@ class LanguageCodeActiveValidatorTest extends ConstraintValidatorTestCase
     public function testWrongValueProvided(): void
     {
         $this->expectException(\Symfony\Component\Validator\Exception\ValidatorException::class);
-        $this->validator->validate(new \stdClass(), new LanguageCodeActive());
+        $this->validator->validate(new \stdClass(), new LanguageCodeExists());
     }
 
     public function testWrongConstraintProvided(): void
@@ -41,31 +41,31 @@ class LanguageCodeActiveValidatorTest extends ConstraintValidatorTestCase
 
     public function testCorrectEmptyValidation(): void
     {
-        $this->validator->validate('', new LanguageCodeActive());
+        $this->validator->validate('', new LanguageCodeExists());
         $this->assertNoViolation();
     }
 
     public function testCorrectValueValidation(): void
     {
-        $this->query->method('getDictionaryActive')->willReturn(['en_GB']);
-        $this->validator->validate('en_GB', new LanguageCodeActive());
+        $this->query->method('getDictionary')->willReturn(['en']);
+        $this->validator->validate('en', new LanguageCodeExists());
 
         $this->assertNoViolation();
     }
 
     public function testInCorrectValueValidation(): void
     {
-        $constraint = new LanguageCodeActive();
+        $constraint = new LanguageCodeExists();
         $value = 'JL';
-        $this->query->method('getDictionaryActive')->willReturn(['en_GB']);
+        $this->query->method('getDictionary')->willReturn(['en']);
         $this->validator->validate($value, $constraint);
 
         $assertion = $this->buildViolation($constraint->message)->setParameter('{{ value }}', $value);
         $assertion->assertRaised();
     }
 
-    protected function createValidator(): LanguageCodeActiveValidator
+    protected function createValidator(): LanguageCodeExistsValidator
     {
-        return new LanguageCodeActiveValidator($this->query);
+        return new LanguageCodeExistsValidator($this->query);
     }
 }

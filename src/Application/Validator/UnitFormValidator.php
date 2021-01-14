@@ -7,11 +7,10 @@
 
 declare(strict_types=1);
 
-namespace Ergonode\Core\Infrastructure\Validator;
+namespace Ergonode\Core\Application\Validator;
 
 use Ergonode\Core\Application\Model\UnitFormModel;
 use Ergonode\Core\Domain\Query\UnitQueryInterface;
-use Ergonode\Core\Infrastructure\Validator\Constraint\UnitForm;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;

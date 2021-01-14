@@ -7,20 +7,14 @@
 
 declare(strict_types=1);
 
-namespace Ergonode\Core\Infrastructure\Validator\Constraint;
+namespace Ergonode\Core\Application\Validator;
 
-use Ergonode\Core\Infrastructure\Validator\LanguageCodeValidator;
 use Symfony\Component\Validator\Constraint;
 
 /**
  * @Annotation
  */
-class LanguageCodeConstraint extends Constraint
+class LanguageCode extends Constraint
 {
     public string $message = 'The language code {{ language }} is not valid.';
-
-    public function validatedBy(): string
-    {
-        return LanguageCodeValidator::class;
-    }
 }

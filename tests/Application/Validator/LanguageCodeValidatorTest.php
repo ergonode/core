@@ -7,10 +7,10 @@
 
 declare(strict_types=1);
 
-namespace Ergonode\Core\Tests\Infrastructure\Validator;
+namespace Ergonode\Core\Tests\Application\Validator;
 
-use Ergonode\Core\Infrastructure\Validator\Constraint\LanguageCodeConstraint;
-use Ergonode\Core\Infrastructure\Validator\LanguageCodeValidator;
+use Ergonode\Core\Application\Validator\LanguageCode;
+use Ergonode\Core\Application\Validator\LanguageCodeValidator;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\Test\ConstraintValidatorTestCase;
 
@@ -19,7 +19,7 @@ class LanguageCodeValidatorTest extends ConstraintValidatorTestCase
     public function testWrongValueProvided(): void
     {
         $this->expectException(\Symfony\Component\Validator\Exception\ValidatorException::class);
-        $this->validator->validate(new \stdClass(), new LanguageCodeConstraint());
+        $this->validator->validate(new \stdClass(), new LanguageCode());
     }
 
     public function testWrongConstraintProvided(): void
@@ -32,20 +32,20 @@ class LanguageCodeValidatorTest extends ConstraintValidatorTestCase
 
     public function testCorrectEmptyValidation(): void
     {
-        $this->validator->validate('', new LanguageCodeConstraint());
+        $this->validator->validate('', new LanguageCode());
         $this->assertNoViolation();
     }
 
     public function testCorrectValueValidation(): void
     {
-        $this->validator->validate('en_GB', new LanguageCodeConstraint());
+        $this->validator->validate('en_GB', new LanguageCode());
 
         $this->assertNoViolation();
     }
 
     public function testInCorrectValueValidation(): void
     {
-        $constraint = new LanguageCodeConstraint();
+        $constraint = new LanguageCode();
         $value = 'JL';
         $this->validator->validate($value, $constraint);
 
