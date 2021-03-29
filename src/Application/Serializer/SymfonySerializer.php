@@ -10,14 +10,15 @@ namespace Ergonode\Core\Application\Serializer;
 
 use Ergonode\SharedKernel\Application\Serializer\Exception\DenoralizationException;
 use Ergonode\SharedKernel\Application\Serializer\Exception\DeserializationException;
-use Ergonode\SharedKernel\Application\Serializer\Exception\NormalizerException;
+use Ergonode\SharedKernel\Application\Serializer\Exception\NormalizationException;
 use Ergonode\SharedKernel\Application\Serializer\Exception\SerializationException;
 use Ergonode\SharedKernel\Application\Serializer\NormalizerInterface;
 use Ergonode\SharedKernel\Application\Serializer\SerializerInterface;
-use JMS\Serializer\Serializer;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Serializer\Exception\ExceptionInterface;
+use Symfony\Component\Serializer\Serializer;
 
-class JMSSerializer implements SerializerInterface, NormalizerInterface
+class SymfonySerializer implements SerializerInterface, NormalizerInterface
 {
     private const SERIALIZE = 'Can\'t serialize data "%s" to "%s" format';
     private const DESERIALIZE = 'Can\'t deserialize data "%s" as "%s" from "%s" format';
@@ -35,13 +36,13 @@ class JMSSerializer implements SerializerInterface, NormalizerInterface
     }
 
     /**
-     * @param mixed $data
+     * {@inheritdoc}
      */
     public function serialize($data, ?string $format = self::FORMAT): string
     {
         try {
             return $this->serializer->serialize($data, $format);
-        } catch (\Throwable $exception) {
+        } catch (ExceptionInterface $exception) {
             $this->logger->error($exception);
 
             throw new SerializationException(
@@ -52,13 +53,13 @@ class JMSSerializer implements SerializerInterface, NormalizerInterface
     }
 
     /**
-     * @return mixed
+     * {@inheritdoc}
      */
     public function deserialize(string $data, string $type, ?string $format = self::FORMAT)
     {
         try {
             return $this->serializer->deserialize($data, $type, $format);
-        } catch (\Throwable $exception) {
+        } catch (ExceptionInterface $exception) {
             $this->logger->error($exception);
 
             throw new DeserializationException(
@@ -71,14 +72,14 @@ class JMSSerializer implements SerializerInterface, NormalizerInterface
     /**
      * {@inheritdoc}
      */
-    public function normalize($data): array
+    public function normalize($data)
     {
         try {
-            return $this->serializer->toArray($data);
-        } catch (\Throwable $exception) {
+            return $this->serializer->normalize($data);
+        } catch (ExceptionInterface $exception) {
             $this->logger->error($exception);
 
-            throw new NormalizerException(
+            throw new NormalizationException(
                 sprintf(self::NORMALIZE, get_debug_type($data)),
                 $exception
             );
@@ -90,13 +91,9 @@ class JMSSerializer implements SerializerInterface, NormalizerInterface
      */
     public function denormalize($data, string $type)
     {
-        if (!is_array($data)) {
-            throw new \InvalidArgumentException('Only array type supported for data');
-        }
-
         try {
-            return $this->serializer->fromArray($data, $type);
-        } catch (\Throwable $exception) {
+            return $this->serializer->denormalize($data, $type);
+        } catch (ExceptionInterface $exception) {
             $this->logger->error($exception);
 
             throw new DenoralizationException(
